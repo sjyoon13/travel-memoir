@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 로컬 디버그/임시 파일
+*.stackdump
+dev-stdout.txt
+dev-stderr.txt
+*.cjs

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: travel-memoir
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      - key: GOOGLE_GENERATIVE_AI_API_KEY
+        sync: false

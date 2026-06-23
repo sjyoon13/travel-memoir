@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #dbeafe;
+  --foreground: #1c1917;
 }
 
 @theme inline {
@@ -12,15 +12,40 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* 회고록 생성 로딩 오버레이용 애니메이션 */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-14px); }
 }
+@keyframes twinkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50%       { transform: scale(0.72) rotate(18deg); opacity: 0.55; }
+}
+@keyframes shimmer-dot {
+  0%, 60%, 100% { transform: scale(0.75); opacity: 0.35; }
+  30%            { transform: scale(1.35); opacity: 1; }
+}
+.animate-float       { animation: float       2.4s ease-in-out infinite; }
+.animate-twinkle     { animation: twinkle     1.7s ease-in-out infinite; }
+.animate-shimmer-dot { animation: shimmer-dot 1.5s ease-in-out infinite; }
 
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  /* 하늘(위) → 지평선(중간) → 대지(아래) 그라데이션 + 좌표 격자 */
+  background-color: #7dd3fc;
+  background-image:
+    linear-gradient(rgba(30, 58, 138, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 58, 138, 0.06) 1px, transparent 1px),
+    linear-gradient(180deg,
+      #7dd3fc 0%,
+      #bae6fd 12%,
+      #e0f2fe 28%,
+      #f0f9ff 44%,
+      #fff7ed 60%,
+      #fde8c8 76%,
+      #fbbf5a 100%
+    );
+  background-size: 52px 52px, 52px 52px, 100% 100%;
+  background-attachment: fixed;
 }
