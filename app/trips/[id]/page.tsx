@@ -42,7 +42,7 @@ async function getPreviewUrl(file: File): Promise<string | null> {
   try {
     const exifr = await import("exifr");
     const thumbnail = await exifr.thumbnail(file);
-    if (thumbnail) return URL.createObjectURL(new Blob([thumbnail], { type: "image/jpeg" }));
+    if (thumbnail) return URL.createObjectURL(new Blob([new Uint8Array(thumbnail)], { type: "image/jpeg" }));
   } catch { /* 썸네일 없으면 폴백 */ }
   try {
     const formData = new FormData();
