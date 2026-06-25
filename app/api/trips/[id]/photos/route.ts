@@ -13,6 +13,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "여행을 찾을 수 없습니다." }, { status: 404 });
   }
 
+  try { await db.execute("ALTER TABLE photos ADD COLUMN country_code TEXT"); } catch {}
+
   try {
     const formData = await req.formData();
     const files = formData.getAll("photos") as File[];
@@ -21,26 +23,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: "사진이 없습니다." }, { status: 400 });
     }
 
-    await Promise.all(
-      files.map(async (file) => {
-        const buffer = Buffer.from(await file.arrayBuffer());
+    // Promise.all 대신 순차 처리 — Render 무료 플랜 512MB 메모리 초과 방지
+    for (const file of files) {
+      const buffer = Buffer.from(await file.arrayBuffer());
 
-        const [dataUri, meta] = await Promise.all([
-          compressToDataUri(buffer, file.type, file.name),
-          extractMeta(buffer),
-        ]);
+      const [dataUri, meta] = await Promise.all([
+        compressToDataUri(buffer, file.type, file.name),
+        extractMeta(buffer),
+      ]);
 
-        const location = meta.lat && meta.lng ? await reverseGeocode(meta.lat, meta.lng) : null;
-        // 쿼터 초과 시 QuotaExceededError throw → 전체 업로드 차단
-        const tags = await generateTags(dataUri);
+      const geocoded = meta.lat && meta.lng ? await reverseGeocode(meta.lat, meta.lng) : null;
+      // 쿼터 초과 시 QuotaExceededError throw → 전체 업로드 차단
+      const tags = await generateTags(dataUri);
 
-        await db.execute({
-          sql: `INSERT INTO photos (trip_id, url, taken_at, lat, lng, location, tags)
-                VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          args: [id, dataUri, meta.takenAt, meta.lat, meta.lng, location, JSON.stringify(tags)],
-        });
-      })
-    );
+      await db.execute({
+        sql: `INSERT INTO photos (trip_id, url, taken_at, lat, lng, location, tags, country_code)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [id, dataUri, meta.takenAt, meta.lat, meta.lng, geocoded?.location ?? null, JSON.stringify(tags), geocoded?.countryCode ?? null],
+      });
+    }
 
     // 사진 EXIF 날짜 기준으로 앨범 기간 갱신
     const dateRows = await db.execute({

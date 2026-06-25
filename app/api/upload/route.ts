@@ -8,6 +8,9 @@ import { compressToDataUri } from "@/lib/image";
 import { assignFolder } from "@/lib/folders";
 
 export async function POST(req: NextRequest) {
+  // country_code 컬럼 마이그레이션 (최초 1회, 이미 있으면 무시)
+  try { await db.execute("ALTER TABLE photos ADD COLUMN country_code TEXT"); } catch {}
+
   try {
     const formData = await req.formData();
     const files = formData.getAll("photos") as File[];
@@ -17,30 +20,35 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. 각 사진 처리 (압축 + EXIF + 역지오코딩 + AI 태깅)
-    const processedPhotos = await Promise.all(
-      files.map(async (file) => {
-        const buffer = Buffer.from(await file.arrayBuffer());
+    // Promise.all 대신 순차 처리 — Render 무료 플랜 512MB 메모리 초과 방지
+    const processedPhotos = [];
+    for (const file of files) {
+      const buffer = Buffer.from(await file.arrayBuffer());
 
-        console.log("[upload] compressing", file.name);
-        const [dataUri, meta] = await Promise.all([
-          compressToDataUri(buffer, file.type, file.name),
-          extractMeta(buffer),
-        ]);
-        console.log("[upload] compressed, dataUri length:", dataUri.length);
+      console.log("[upload] compressing", file.name);
+      const [dataUri, meta] = await Promise.all([
+        compressToDataUri(buffer, file.type, file.name),
+        extractMeta(buffer),
+      ]);
+      console.log("[upload] compressed, dataUri length:", dataUri.length);
 
-        const location =
-          meta.lat && meta.lng
-            ? await reverseGeocode(meta.lat, meta.lng)
-            : null;
+      const geocoded = meta.lat && meta.lng ? await reverseGeocode(meta.lat, meta.lng) : null;
 
-        console.log("[upload] generating tags");
-        // 쿼터 초과 시 QuotaExceededError throw → 전체 업로드 차단
-        const tags = await generateTags(dataUri);
-        console.log("[upload] tags:", tags);
+      console.log("[upload] generating tags");
+      // 쿼터 초과 시 QuotaExceededError throw → 전체 업로드 차단
+      const tags = await generateTags(dataUri);
+      console.log("[upload] tags:", tags);
 
-        return { url: dataUri, takenAt: meta.takenAt, lat: meta.lat, lng: meta.lng, location, tags };
-      })
-    );
+      processedPhotos.push({
+        url: dataUri,
+        takenAt: meta.takenAt,
+        lat: meta.lat,
+        lng: meta.lng,
+        location: geocoded?.location ?? null,
+        countryCode: geocoded?.countryCode ?? null,
+        tags,
+      });
+    }
 
     // 2. 날짜 기준으로 여행 그룹 묶기
     const tripGroups = groupIntoTrips(processedPhotos);
@@ -65,8 +73,8 @@ export async function POST(req: NextRequest) {
 
       for (const photo of group.photos) {
         await db.execute({
-          sql: `INSERT INTO photos (trip_id, url, taken_at, lat, lng, location, tags)
-                VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          sql: `INSERT INTO photos (trip_id, url, taken_at, lat, lng, location, tags, country_code)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           args: [
             tripId,
             photo.url,
@@ -75,6 +83,7 @@ export async function POST(req: NextRequest) {
             photo.lng,
             photo.location,
             JSON.stringify(photo.tags),
+            photo.countryCode,
           ],
         });
       }
