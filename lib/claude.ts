@@ -28,13 +28,28 @@ function is429(e: unknown): boolean {
   return (e as any)?.status === 429 || String((e as any)?.message).includes("429");
 }
 
+function is503(e: unknown): boolean {
+  const msg = String((e as any)?.message ?? "");
+  return (e as any)?.status === 503 || msg.includes("503") || msg.includes("UNAVAILABLE");
+}
+
 export const QUOTA_EXCEEDED_MESSAGE =
   "오늘의 AI 기능 사용량을 모두 소진했습니다.\n내일 다시 시도해주세요! 🙏";
+
+export const SERVICE_UNAVAILABLE_MESSAGE =
+  "AI 서버가 잠시 바쁩니다. 잠시 후 다시 시도해주세요.";
 
 export class QuotaExceededError extends Error {
   constructor() {
     super(QUOTA_EXCEEDED_MESSAGE);
     this.name = "QuotaExceededError";
+  }
+}
+
+export class ServiceUnavailableError extends Error {
+  constructor() {
+    super(SERVICE_UNAVAILABLE_MESSAGE);
+    this.name = "ServiceUnavailableError";
   }
 }
 
@@ -64,6 +79,7 @@ export async function generateTags(imageDataUri: string): Promise<string[]> {
     return text.split(",").map((t) => t.trim()).filter(Boolean);
   } catch (e) {
     if (is429(e)) { markQuotaExceeded(); throw new QuotaExceededError(); }
+    if (is503(e)) return []; // 일시적 과부하 — 태그 없이 업로드 계속
     throw e;
   }
 }
@@ -150,6 +166,7 @@ export async function generateSummary(
     return response.text ?? "";
   } catch (e) {
     if (is429(e)) { markQuotaExceeded(); throw new QuotaExceededError(); }
+    if (is503(e)) throw new ServiceUnavailableError();
     throw e;
   }
 }

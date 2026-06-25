@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { generateSummary, QuotaExceededError, QUOTA_EXCEEDED_MESSAGE } from "@/lib/claude";
+import { generateSummary, QuotaExceededError, QUOTA_EXCEEDED_MESSAGE, ServiceUnavailableError, SERVICE_UNAVAILABLE_MESSAGE } from "@/lib/claude";
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -38,9 +38,11 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
     return NextResponse.json({ summary });
   } catch (error) {
-    // 일일 무료 쿼터 초과
     if (error instanceof QuotaExceededError) {
       return NextResponse.json({ error: QUOTA_EXCEEDED_MESSAGE }, { status: 429 });
+    }
+    if (error instanceof ServiceUnavailableError) {
+      return NextResponse.json({ error: SERVICE_UNAVAILABLE_MESSAGE }, { status: 503 });
     }
     console.error(error);
     return NextResponse.json({ error: "회고록 생성에 실패했습니다." }, { status: 500 });
