@@ -249,8 +249,8 @@ export default function TripPage() {
     setGenerating(false);
     if (res.ok) {
       setTrip((prev) => prev ? { ...prev, summary: data.summary } : prev);
-    } else if (res.status === 429) {
-      alert(data.error); // 서버에서 내려온 한국어 안내 메시지
+    } else if (data.error) {
+      alert(data.error); // 서버에서 내려온 한국어 안내 메시지 (429, 503 등)
     } else {
       alert("회고록 생성에 실패했습니다.");
     }
@@ -355,8 +355,8 @@ export default function TripPage() {
         </button>
 
         {/* 헤더 */}
-        <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
-          <div className="flex-1 min-w-0">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-8 gap-3 sm:gap-4">
+          <div className="min-w-0">
             {editing ? (
               <div className="flex items-center gap-2">
                 <input
@@ -367,14 +367,14 @@ export default function TripPage() {
                     if (e.key === "Enter") handleSaveName();
                     if (e.key === "Escape") setEditing(false);
                   }}
-                  className="text-3xl font-bold text-stone-800 bg-white border border-stone-300 rounded-lg px-3 py-1 w-full focus:outline-none focus:border-stone-500"
+                  className="text-2xl sm:text-3xl font-bold text-stone-800 bg-white border border-stone-300 rounded-lg px-3 py-1 w-full focus:outline-none focus:border-stone-500"
                 />
                 <button onClick={handleSaveName} className="text-sm bg-stone-800 text-white px-3 py-1.5 rounded-lg hover:bg-stone-700 transition shrink-0">저장</button>
                 <button onClick={() => setEditing(false)} className="text-sm border border-stone-300 px-3 py-1.5 rounded-lg hover:bg-stone-50 transition shrink-0">취소</button>
               </div>
             ) : (
               <div className="flex items-center gap-2 group">
-                <h1 className="text-3xl font-bold text-stone-800 truncate">{trip.name}</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-stone-800 break-words">{trip.name}</h1>
                 <button
                   onClick={() => { setEditName(trip.name); setEditing(true); }}
                   title="이름 수정"
@@ -384,29 +384,32 @@ export default function TripPage() {
                 </button>
               </div>
             )}
-            <p className="text-stone-500 mt-1">
-              📍 {trip.location} &nbsp;·&nbsp; {formatDateRange(trip.start_date, trip.end_date)}
+            <p className="text-stone-500 mt-1 text-sm sm:text-base break-words">
+              📍 {trip.location}
+            </p>
+            <p className="text-stone-400 text-xs sm:text-sm mt-0.5">
+              {formatDateRange(trip.start_date, trip.end_date)}
             </p>
           </div>
 
           {/* 액션 버튼 */}
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <div className="flex items-center gap-2 shrink-0 flex-wrap sm:justify-end">
             <button
               onClick={openAddModal}
-              className="border border-stone-300 text-stone-600 px-3 py-2 rounded-xl hover:bg-stone-100 transition text-sm"
+              className="border border-stone-300 text-stone-600 px-3 py-2 rounded-xl hover:bg-stone-100 transition text-sm whitespace-nowrap"
             >
               + 사진 추가
             </button>
             <button
               onClick={handleGenerateSummary}
               disabled={generating}
-              className="bg-stone-800 text-white px-4 py-2 rounded-xl hover:bg-stone-700 transition disabled:opacity-40 text-sm"
+              className="bg-stone-800 text-white px-4 py-2 rounded-xl hover:bg-stone-700 transition disabled:opacity-40 text-sm whitespace-nowrap"
             >
-              {generating ? "생성 중..." : trip.summary ? "요약 재생성" : "✨ AI 회고록 생성"}
+              {generating ? "생성 중..." : trip.summary ? "회고록 재생성" : "✨ AI 회고록 생성"}
             </button>
             <button
               onClick={handleDelete}
-              className="text-red-400 hover:text-red-600 border border-red-200 hover:border-red-400 px-3 py-2 rounded-xl transition text-sm"
+              className="text-red-400 hover:text-red-600 border border-red-200 hover:border-red-400 px-3 py-2 rounded-xl transition text-sm whitespace-nowrap"
             >
               삭제
             </button>
@@ -475,11 +478,11 @@ export default function TripPage() {
         {/* 사진 상세 모달 */}
         {selected && (
           <div
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-6"
+            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-3 sm:p-6"
             onClick={() => setSelected(null)}
           >
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl overflow-hidden max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
-              <img src={selected.url} alt="" className="w-full max-h-96 object-contain bg-stone-900" />
+              <img src={selected.url} alt="" className="w-full max-h-[55vh] sm:max-h-96 object-contain bg-stone-900" />
               <div className="p-4">
                 {selected.taken_at && <p className="text-stone-500 text-sm">{formatDate(selected.taken_at)}</p>}
                 {selected.location && <p className="text-stone-600 text-sm mt-1">📍 {selected.location}</p>}

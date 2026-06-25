@@ -9,5 +9,7 @@ export async function GET() {
      LEFT JOIN folders f ON t.folder_id = f.id
      ORDER BY f.name DESC, t.start_date DESC`
   );
-  return NextResponse.json(result.rows);
+  return NextResponse.json(result.rows, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }

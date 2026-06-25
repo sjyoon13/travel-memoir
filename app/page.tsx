@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+
 import TabNav from "@/app/components/TabNav";
 
 interface Trip {
@@ -61,39 +62,93 @@ export default function Home() {
   });
 
   const TripCard = ({ trip }: { trip: Trip }) => (
-    <Link href={`/trips/${trip.id}`}>
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow border border-white/60">
-        <div className="h-48 bg-sky-100/60 overflow-hidden">
-          {trip.cover_url ? (
-            <img src={trip.cover_url} alt={trip.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-4xl">🏔️</div>
-          )}
+    <div className="relative h-full">
+      {/* 포스트잇 — 카드 우측 모서리 */}
+      {!trip.summary && (
+        <div
+          className="absolute top-5 -right-2 z-20 pointer-events-none select-none"
+          style={{ transform: "rotate(7deg)" }}
+        >
+          {/* 블러 그림자 */}
+          <div style={{
+            position: "absolute",
+            top: "4px", left: "4px", right: "-4px", bottom: "-6px",
+            background: "rgba(0,0,0,0.22)",
+            filter: "blur(5px)",
+            zIndex: -1,
+          }} />
+          {/* 접착 줄 */}
+          <div style={{
+            height: "10px",
+            background: "linear-gradient(to bottom, #7c2d12, #b45309)",
+            borderRadius: "2px 2px 0 0",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)",
+          }} />
+          {/* 노트 본문 */}
+          <div style={{
+            position: "relative",
+            width: "46px",
+            height: "46px",
+            background: "linear-gradient(145deg, #fefce8 0%, #fef9c3 40%, #fef08a 75%, #fde047 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "26px",
+          }}>
+            ❓
+            {/* 접힌 모서리 — 종이 뒷면 */}
+            <div style={{
+              position: "absolute", bottom: 0, right: 0,
+              width: "18px", height: "18px",
+              background: "linear-gradient(to top left, #b0b0b0 0%, #d0d0d0 40%, #ededed 47%, transparent 50%)",
+            }} />
+            {/* 접힌 모서리 — 크리스 그림자 */}
+            <div style={{
+              position: "absolute", bottom: 0, right: 0,
+              width: "18px", height: "18px",
+              background: "linear-gradient(to top left, transparent 42%, rgba(0,0,0,0.14) 43%, rgba(0,0,0,0.1) 49%, transparent 51%)",
+            }} />
+          </div>
         </div>
-        <div className="p-4">
-          <h2 className="font-semibold text-stone-800 text-lg">{trip.name}</h2>
-          <p className="text-stone-600 text-sm mt-1">
-            {formatDateRange(trip.start_date, trip.end_date)}
-          </p>
-          {trip.summary && (
-            <p className="text-stone-600 text-sm mt-2 line-clamp-2">{trip.summary}</p>
-          )}
+      )}
+      <Link href={`/trips/${trip.id}`} className="block h-full">
+        <div className="h-full flex flex-col bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-shadow border border-white/60">
+          {/* 커버 이미지 */}
+          <div className="relative h-44 sm:h-48 bg-sky-100/60 overflow-hidden flex-shrink-0">
+            {trip.cover_url ? (
+              <img src={trip.cover_url} alt={trip.name} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-4xl">🏔️</div>
+            )}
+          </div>
+          {/* 텍스트 */}
+          <div className="flex flex-col flex-1 p-4">
+            <h2 className="font-semibold text-stone-800 text-base sm:text-lg leading-snug line-clamp-1">{trip.name}</h2>
+            <p className="text-stone-500 text-xs sm:text-sm mt-1">{formatDateRange(trip.start_date, trip.end_date)}</p>
+            <div className="flex-1 mt-2">
+              {trip.summary ? (
+                <p className="text-stone-600 text-sm line-clamp-2">{trip.summary}</p>
+              ) : (
+                <p className="text-stone-400 text-sm italic">아직 회고록이 없어요.</p>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 
   return (
     <main className="min-h-screen px-6 py-10">
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-stone-800 drop-shadow-sm">✈️ 여행 회고록</h1>
-            <p className="text-stone-600 mt-1">사진으로 기록된 나의 여행들</p>
+        <div className="flex items-start justify-between mb-6 gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-stone-800 drop-shadow-sm">✈️ 여행 회고록</h1>
+            <p className="text-stone-600 mt-1 text-sm sm:text-base">사진으로 기록된 나의 여행들</p>
           </div>
           <Link
             href="/upload"
-            className="bg-blue-700/90 text-white px-5 py-2.5 rounded-xl hover:bg-blue-800 transition shadow-sm backdrop-blur-sm"
+            className="shrink-0 bg-blue-700/90 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl hover:bg-blue-800 transition shadow-sm backdrop-blur-sm text-sm sm:text-base"
           >
             + 앨범 만들기
           </Link>
@@ -111,7 +166,7 @@ export default function Home() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-12">
             {folderEntries.map(([folderName, folderTrips]) => {
               const isCollapsed = collapsedFolders.has(folderName);
 
@@ -128,17 +183,23 @@ export default function Home() {
                   {folderName && (
                     <button
                       onClick={() => toggleFolder(folderName)}
-                      className="flex items-center gap-2 mb-4 w-full text-left group"
+                      className="flex items-start gap-2 mb-4 w-full text-left group min-w-0"
                     >
-                      <span className="text-xl">📁</span>
-                      <h2 className="text-lg font-semibold text-stone-700">{folderName}</h2>
-                      <span className="text-stone-400 text-sm">({folderTrips.length})</span>
-                      <span className="text-stone-400 text-sm">
-                        · {formatDateRange(folderStart, folderEnd)}
-                      </span>
-                      {/* 접기/펼치기 화살표 */}
+                      <span className="text-xl shrink-0 mt-0.5">📁</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <h2 className="text-base sm:text-lg font-semibold text-stone-700 truncate">{folderName}</h2>
+                          <span className="text-stone-400 text-sm shrink-0">({folderTrips.length})</span>
+                          <span className="text-stone-400 text-xs sm:text-sm shrink-0 hidden sm:inline">
+                            · {formatDateRange(folderStart, folderEnd)}
+                          </span>
+                        </div>
+                        <p className="text-stone-400 text-xs mt-0.5 sm:hidden">
+                          {formatDateRange(folderStart, folderEnd)}
+                        </p>
+                      </div>
                       <span
-                        className="ml-auto text-stone-400 text-xs transition-transform duration-200"
+                        className="text-stone-400 text-xs transition-transform duration-200 shrink-0 mt-1"
                         style={{ transform: isCollapsed ? "rotate(0deg)" : "rotate(90deg)" }}
                       >
                         ▶
@@ -147,7 +208,7 @@ export default function Home() {
                   )}
 
                   {!isCollapsed && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 gap-y-6">
                       {folderTrips.map((trip) => (
                         <TripCard key={trip.id} trip={trip} />
                       ))}

@@ -242,11 +242,71 @@ export default function WorldMapView() {
           </div>
         )}
 
-        {/* 줌 힌트 */}
-        <div className="absolute bottom-3 right-4 text-xs text-stone-500/70 pointer-events-none">
+        {/* 줌 힌트 — 데스크톱 */}
+        <div className="absolute bottom-3 right-4 text-xs text-stone-500/70 pointer-events-none hidden sm:block">
           스크롤로 확대 · 드래그로 이동
         </div>
+        {/* 줌 힌트 — 모바일 */}
+        <div className="absolute bottom-3 right-4 text-xs text-stone-500/70 pointer-events-none sm:hidden">
+          핀치로 확대 · 드래그로 이동
+        </div>
+        {/* 탭 안내 — 모바일만 */}
+        {!selected && countries.length > 0 && (
+          <div className="absolute bottom-3 left-4 text-xs text-stone-500/70 pointer-events-none sm:hidden">
+            나라를 탭해서 선택
+          </div>
+        )}
       </div>
+
+      {/* ── 선택 국가 패널 (모바일 전용) ── */}
+      {selected && (() => {
+        const country = countries.find((c) => c.isoCode === selected);
+        if (!country) return null;
+        return (
+          <div className="rounded-2xl overflow-hidden border border-white/60 shadow-md bg-white/85 backdrop-blur-sm">
+            {/* 상단 헤더 — 국가 색상 강조선 */}
+            <div
+              className="flex items-center gap-3 px-4 py-3 border-b border-stone-100"
+              style={{ borderLeft: `4px solid ${country.color}` }}
+            >
+              <FlagEmoji isoCode={country.isoCode} size={38} />
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-stone-800 text-lg leading-tight truncate">
+                  {country.koreanName}
+                </h3>
+                <div className="flex gap-3 text-xs text-stone-500 mt-0.5">
+                  <span>📷 {country.photoCount}장</span>
+                  <span>✈️ {country.tripCount}번</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelected(null)}
+                className="text-stone-400 hover:text-stone-600 text-2xl leading-none shrink-0 px-1"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* 여행 목록 */}
+            <div className="px-4 py-3">
+              <p className="text-xs font-semibold text-stone-400 uppercase tracking-wide mb-2">여행 목록</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {country.trips.map((trip) => (
+                  <a
+                    key={trip.id}
+                    href={`/trips/${trip.id}`}
+                    className="flex items-center gap-3 rounded-xl px-3 py-3 bg-stone-50 hover:bg-stone-100 transition active:bg-stone-200"
+                  >
+                    <span className="text-base">✈️</span>
+                    <span className="flex-1 text-sm font-medium text-stone-700 truncate">{trip.name}</span>
+                    <span className="text-stone-400 text-sm shrink-0">›</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── 나라별 카드 요약 ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">

@@ -3,6 +3,7 @@ const TRIP_GAP_DAYS = 3; // 사진 간격이 3일 이상이면 새 여행으로 
 interface Photo {
   takenAt: string | null;
   location: string | null;
+  countryCode: string | null;
   url: string;
   lat: number | null;
   lng: number | null;

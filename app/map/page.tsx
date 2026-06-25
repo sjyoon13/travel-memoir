@@ -19,16 +19,16 @@ export default function MapPage() {
     <main className="min-h-screen px-6 py-10">
       <div className="max-w-5xl mx-auto">
         {/* 헤더 */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-stone-800 drop-shadow-sm">
+        <div className="flex items-start justify-between mb-6 gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-stone-800 drop-shadow-sm">
               🗺️ 세계 지도
             </h1>
-            <p className="text-stone-600 mt-1">내가 여행한 나라들</p>
+            <p className="text-stone-600 mt-1 text-sm sm:text-base">내가 여행한 나라들</p>
           </div>
           <Link
             href="/upload"
-            className="bg-blue-700/90 text-white px-5 py-2.5 rounded-xl hover:bg-blue-800 transition shadow-sm backdrop-blur-sm"
+            className="shrink-0 bg-blue-700/90 text-white px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl hover:bg-blue-800 transition shadow-sm backdrop-blur-sm text-sm sm:text-base"
           >
             + 사진 업로드
           </Link>

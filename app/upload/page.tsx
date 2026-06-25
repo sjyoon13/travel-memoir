@@ -217,7 +217,7 @@ export default function UploadPage() {
         {previews.length > 0 && (
           <div className="mt-6">
             <p className="text-stone-600 font-medium mb-3">{previews.length}장 선택됨</p>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {previews.map(({ previewUrl }, i) => (
                 <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-stone-200">
                   {previewUrl
